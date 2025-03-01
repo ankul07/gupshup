@@ -11,7 +11,7 @@ const app = express();
  */
 app.use(
   cors({
-    origin: "http://localhost:5173", // Allow requests from this origin
+    origin: "https://gupshup-ankulcode.vercel.app", // Allow requests from this origin
     credentials: true, // Allow cookies and authorization headers
     methods: ["POST", "GET", "DELETE", "PUT"], // Allowed HTTP methods
   })
