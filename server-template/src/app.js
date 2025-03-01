@@ -30,10 +30,9 @@ app.use(cookieParser());
  * @desc    A test route to check server status
  * @access  Public
  */
-app.get("/test", (req, res) => {
-  res.send("<h1>Welcome to root path!</h1>");
+app.get("/api", (req, res) => {
+  res.json({ message: "Backend Running Successfully!" });
 });
-
 /**
  * @desc Middleware to parse URL-encoded bodies
  * @config Extended: true allows for rich objects and arrays
