@@ -21,7 +21,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import PrivateRoute from "./components/PrivateRoute";
 import Search from "./pages/Search";
-import UserProfileRoute from "./components/UserProfileRoute";
 
 const App = () => {
   const dispatch = useDispatch();
