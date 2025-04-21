@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Eye, EyeOff, Mail, User, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, User, Lock, Loader } from "lucide-react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { register, clearError, clearSuccess } from "../redux/auth/authSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
+import { getDeviceInfo } from "../utils/getDevice";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,11 +15,21 @@ const Register = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    deviceInfo: null,
   });
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { error, message, success } = useSelector((state) => state.auth);
-  // console.log(message);
+  const { error, message, success, loading, otpPurpose } = useSelector(
+    (state) => state.auth
+  );
+  // this is how otp purpose state work otpPurpose = "verifyEmail"
+  // Set device info when component mounts
+  useEffect(() => {
+    setFormData((prevData) => ({
+      ...prevData,
+      deviceInfo: getDeviceInfo(),
+    }));
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -85,46 +96,43 @@ const Register = () => {
 
     return true;
   };
+
   useEffect(() => {
-    if (error) {
-      // Check for unverified user with valid OTP case
-      if (message?.includes("Please verify the OTP sent to your email")) {
-        toast.info(message);
-        // Redirect to OTP verification page with the email
+    // First handle displaying messages
+    if (success) {
+      toast.success(message || "Signup successful!");
+
+      // After showing message, check if otpPurpose exists and navigate
+      if (otpPurpose) {
         navigate("/otp-verify", {
           state: {
             email: formData.email,
-            message: "Please enter the OTP sent to your email",
+            otpPurpose: otpPurpose,
+            message: message,
           },
         });
-      } else {
-        // Handle other errors normally
-        toast.error(message || "An error occurred!");
       }
-      // dispatch(clearError());
+    } else if (error) {
+      // Show error message
+      toast.error(message || "An error occurred!");
+      if (message?.includes("Please verify the OTP")) {
+        navigate("/otp-verify", {
+          state: {
+            email: formData.email,
+            otpPurpose: "verifyEmail",
+            message: message,
+          },
+        });
+      }
     }
-    if (success) {
-      toast.success(message || "Signup successful!");
-      navigate("/otp-verify", {
-        state: {
-          email: formData.email,
-          message: "Please check your email for the verification OTP",
-        },
-      });
-      // dispatch(clearSuccess());
-    }
-  }, [error, success, message]);
+  }, [error, success, message, otpPurpose, formData.email, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    await dispatch(register(formData));
-
-    // if (validateForm()) {
-    //   toast.success("Registration successful!");
-    //   // Handle form submission here
-    //   console.log(formData);
-    // }
+    if (validateForm()) {
+      await dispatch(register(formData));
+    }
   };
 
   return (
@@ -242,14 +250,31 @@ const Register = () => {
             </button>
           </div>
 
-          {/* Submit Button */}
+          {/* Submit Button with Spinner */}
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform transition-all duration-150 hover:scale-[1.02]"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform transition-all duration-150 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Register
+              {loading ? (
+                <>
+                  <Loader className="h-5 w-5 animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                "Register"
+              )}
             </button>
+          </div>
+          <div className="text-center text-sm mt-4">
+            <span className="text-gray-600">Already have an account? </span>
+            <NavLink
+              to="/login"
+              className="font-medium text-purple-600 hover:text-purple-500"
+            >
+              Sign in here
+            </NavLink>
           </div>
         </form>
       </div>

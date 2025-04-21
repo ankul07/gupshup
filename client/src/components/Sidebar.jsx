@@ -20,7 +20,6 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { error, message, success, user } = useSelector((state) => state.auth);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  // console.log(user);
 
   useEffect(() => {
     // Handle logout success
@@ -75,7 +74,7 @@ const Sidebar = () => {
             ))}
 
             <NavItem
-              path="/profile"
+              path={`/profile/${user?.username}`}
               label="Profile"
               customIcon={
                 <img
@@ -114,7 +113,10 @@ const Sidebar = () => {
           {/* <NavLink to="/reels" className="hover:text-purple-600">
             <Film className="h-6 w-6" />
           </NavLink> */}
-          <NavLink to="/profile" className="hover:text-purple-600">
+          <NavLink
+            to={`/profile/${user?.username}`}
+            className="hover:text-purple-600"
+          >
             <img
               className="h-6 w-6 rounded-full "
               src={user?.profilePictureUrl}

@@ -57,6 +57,7 @@ const App = () => {
       dispatch(getProfile());
     }
   }, [isAuthenticated, dispatch]);
+
   return (
     <Router>
       <Routes>
@@ -74,7 +75,6 @@ const App = () => {
         <Route path="/otp-verify" element={<OTPVerification />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/search" element={<Search />} />
-        <Route path="/profile/:userId" element={<UserProfileRoute />} />
         <Route
           path="/create"
           element={
@@ -83,9 +83,8 @@ const App = () => {
             </PrivateRoute>
           }
         />
-
         <Route
-          path="/profile"
+          path="/profile/:username"
           element={
             <PrivateRoute>
               <Profile />

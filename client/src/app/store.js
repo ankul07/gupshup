@@ -15,7 +15,7 @@ const authPersistConfig = {
 const postsPersistConfig = {
   key: "posts",
   storage,
-  whitelist: ["posts", "userPosts", "currentPost"], // Persist these fields from posts state
+  whitelist: ["posts", "selecteduserPosts", "savedPosts", "likedPosts"], // Persist these fields from posts state
 };
 
 // Create persisted reducers

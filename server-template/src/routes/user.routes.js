@@ -7,6 +7,7 @@ import {
   resendOtp,
   update,
   verifyOTP,
+  getSelectedUserProfile,
   uploadProfileImage,
   getUserByQuery,
 } from "../controllers/user.controller.js";
@@ -40,6 +41,7 @@ router.post("/login", authenticate);
  * @access  Private (Requires Authentication)
  */
 router.get("/profile", isAuthenticated, profile);
+router.get("/profile/:username", isAuthenticated, getSelectedUserProfile);
 
 /**
  * @route   PUT /api/users/updateuser

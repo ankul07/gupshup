@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import ProfilePage from "../pages/ProfilePage";
+import ProfilePage from "../../../ProfilePage";
 import api from "../services/api";
 
 const UserProfileRoute = () => {

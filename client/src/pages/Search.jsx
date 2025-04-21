@@ -58,7 +58,7 @@ const Search = () => {
 
   // Navigate to user profile when a user is clicked
   const handleUserClick = (user) => {
-    navigate(`/profile/${user._id}`, { state: { user } });
+    navigate(`/profile/${user.username}`, { state: { user } });
   };
 
   return (

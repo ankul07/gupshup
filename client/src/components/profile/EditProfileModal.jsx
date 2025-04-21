@@ -13,14 +13,14 @@ import {
   Shield,
   LogOut,
 } from "lucide-react";
-import Layout from "../components/Layout";
+import Layout from "../Layout";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
   updateProfile,
   clearSuccess,
   clearError,
-} from "../redux/auth/authSlice";
+} from "../../redux/auth/authSlice";
 
 // Edit Profile Modal Component
 const EditProfileModal = ({ isOpen, onClose, profileData, onUpdate }) => {

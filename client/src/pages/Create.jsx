@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Camera } from "lucide-react";
+import { Camera, Loader } from "lucide-react";
 import Layout from "../components/Layout";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -210,9 +210,17 @@ const Create = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg font-medium text-sm"
+            disabled={loading}
+            className="w-full bg-blue-500 text-white py-2 rounded-lg font-medium text-sm flex items-center justify-center"
           >
-            Share
+            {loading ? (
+              <>
+                <Loader className="w-4 h-4 mr-2 animate-spin" />
+                Sharing...
+              </>
+            ) : (
+              "Share"
+            )}
           </button>
         </form>
       </div>

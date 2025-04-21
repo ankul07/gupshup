@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader } from "lucide-react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/auth/authSlice";
 import { useNavigate } from "react-router-dom";
+import { getDeviceInfo } from "../utils/getDevice";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,51 +14,75 @@ const Login = () => {
   });
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { error, message, success } = useSelector((state) => state.auth);
-
+  const { error, message, success, loading, otpPurpose } = useSelector(
+    (state) => state.auth
+  );
+  // console.log(otpPurpose);
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const validateForm = () => {
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.username)) {
       toast.error("Please enter a valid email address");
       return false;
     }
-
-    // Password validation
     if (!formData.password) {
       toast.error("Password is required");
       return false;
     }
-
     return true;
   };
 
   useEffect(() => {
     if (error) {
-      // Handle other errors normally
-      toast.error(message || "An error occurred!");
+      if (message.includes("Please verify your email before logging in")) {
+        toast.info(message || "Please verify your email");
+        navigate("/otp-verify", {
+          state: {
+            email: formData.username,
+            message:
+              "Please enter the OTP sent to your email to verify your account",
+            otpPurpose: "verifyEmail",
+          },
+        });
+      } else {
+        toast.error(message || "An error occurred!");
+      }
+    }
 
-      // dispatch(clearError());
-    }
     if (success) {
-      toast.success(message || "Signup successful!");
-      // dispatch(clearSuccess());
-      navigate("/");
+      // Check for device verification via otpPurpose
+      if (otpPurpose === "verifyDevice") {
+        toast.info(message || "Please verify your device");
+        navigate("/otp-verify", {
+          state: {
+            email: formData.username,
+            message: message,
+            otpPurpose: otpPurpose,
+          },
+        });
+      } else {
+        // Regular login success - no OTP needed
+        toast.success(message || "Login successful!");
+        navigate("/");
+      }
     }
-  }, [error, success, message]);
+  }, [error, success, message, navigate, formData.username, otpPurpose]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await dispatch(login(formData));
+    const loginData = {
+      ...formData,
+      deviceInfo: getDeviceInfo(),
+    };
+    await dispatch(login(loginData));
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.01]">
-        {/* Logo */}
         <div className="text-center">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 text-transparent bg-clip-text mb-2">
             GupShup
@@ -65,9 +90,7 @@ const Login = () => {
           <p className="text-gray-600">Welcome back!</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          {/* Email Field */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Mail className="h-5 w-5 text-gray-400" />
@@ -82,8 +105,6 @@ const Login = () => {
               required
             />
           </div>
-
-          {/* Password Field */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Lock className="h-5 w-5 text-gray-400" />
@@ -109,8 +130,6 @@ const Login = () => {
               )}
             </button>
           </div>
-
-          {/* Remember Me and Forgot Password */}
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
@@ -126,7 +145,6 @@ const Login = () => {
                 Remember me
               </label>
             </div>
-
             <div className="text-sm">
               <a
                 href="/forgot-password"
@@ -136,18 +154,22 @@ const Login = () => {
               </a>
             </div>
           </div>
-
-          {/* Submit Button */}
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform transition-all duration-150 hover:scale-[1.02]"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform transition-all duration-150 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Sign in
+              {loading ? (
+                <>
+                  <Loader className="h-5 w-5 animate-spin mr-2" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign in"
+              )}
             </button>
           </div>
-
-          {/* Register Link */}
           <div className="text-center text-sm">
             <span className="text-gray-600">Don't have an account? </span>
             <a

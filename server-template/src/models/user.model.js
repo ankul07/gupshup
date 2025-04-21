@@ -84,6 +84,12 @@ const userSchema = new mongoose.Schema(
         ref: "Post",
       },
     ],
+    likedPosts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post",
+      },
+    ],
     otp: {
       type: String,
       default: null,
@@ -100,6 +106,30 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+
+    trustedDevices: [
+      {
+        deviceId: {
+          type: String,
+          required: true,
+        },
+        userAgent: String,
+        platform: String,
+        lastUsed: {
+          type: Date,
+          default: Date.now,
+        },
+        isActive: {
+          type: Boolean,
+          default: true,
+        },
+      },
+    ],
     createdAt: {
       type: Date,
       default: Date.now,

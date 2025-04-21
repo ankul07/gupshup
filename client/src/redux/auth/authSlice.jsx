@@ -1,15 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../services/api";
-import { AtomIcon } from "lucide-react";
 
 // Initial State
 const initialState = {
   isAuthenticated: false,
   loading: false,
   user: {},
+  selectedUser: null,
   error: null,
   success: false,
   message: null,
+  otpPurpose: null,
 };
 
 // Async Thunks
@@ -18,13 +19,8 @@ export const register = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       const response = await api.post("/v1/user/create", formData);
-      console.log(response);
-      console.log(response.data);
-
       return response.data;
     } catch (error) {
-      console.log(error);
-      console.log(error.response.data);
       return rejectWithValue(error.response.data);
     }
   }
@@ -32,15 +28,18 @@ export const register = createAsyncThunk(
 
 export const verifyOTP = createAsyncThunk(
   "auth/verifyOTP",
-  async ({ email, otp }, { rejectWithValue }) => {
-    // console.log(email);
+  async ({ email, otp, otpPurpose, deviceInfo }, { rejectWithValue }) => {
     try {
-      const response = await api.post("/v1/user/verify-otp", { email, otp });
+      const response = await api.post("/v1/user/verify-otp", {
+        email,
+        otp,
+        otpPurpose,
+        deviceInfo,
+      });
       const accessToken = response.data.accessToken;
       if (accessToken) {
         localStorage.setItem("accessToken", accessToken);
       }
-      // console.log(response);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -50,15 +49,19 @@ export const verifyOTP = createAsyncThunk(
 
 export const resendOTP = createAsyncThunk(
   "auth/resendOTP",
-  async ({ email }, { rejectWithValue }) => {
+  async ({ email, otpPurpose }, { rejectWithValue }) => {
     try {
-      const response = await api.post("/v1/user/resend-otp", { email });
+      const response = await api.post("/v1/user/resend-otp", {
+        email,
+        otpPurpose,
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
 );
+
 export const login = createAsyncThunk(
   "auth/login",
   async (formData, { rejectWithValue }) => {
@@ -82,18 +85,33 @@ export const getProfile = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/v1/user/profile");
-      // console.log(response);
+      console.log(
+        "getprofilefunctionresponseforsavedffunctionpost",
+        response.data
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
 );
+
+export const getSelectedUserProfile = createAsyncThunk(
+  "auth/getSelectedUserProfile",
+  async (username, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/v1/user/profile/${username}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 export const updateProfileImage = createAsyncThunk(
   "auth/updateProfileImage",
   async (formData, { rejectWithValue }) => {
     try {
-      // console.log(formData);
       const response = await api.post("/v1/user/profile-image", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -117,6 +135,7 @@ export const updateProfile = createAsyncThunk(
     }
   }
 );
+
 export const logout = createAsyncThunk(
   "auth/logout",
   async (_, { rejectWithValue }) => {
@@ -142,6 +161,7 @@ const authSlice = createSlice({
     clearSuccess: (state) => {
       state.success = false;
       state.message = null;
+      state.otpPurpose = null;
     },
   },
   extraReducers: (builder) => {
@@ -157,9 +177,9 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = null;
         state.isAuthenticated = false;
-        // state.user = action.payload.data;
         state.success = action.payload.success;
         state.message = action.payload.message;
+        state.otpPurpose = action.payload.otpPurpose;
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
@@ -214,7 +234,7 @@ const authSlice = createSlice({
         state.message = action.payload.error.message;
       })
 
-      //   // Login
+      // Login
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -223,10 +243,16 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.data;
         state.success = action.payload.success;
         state.message = action.payload.message;
+        if (action.payload.otpPurpose) {
+          state.isAuthenticated = false;
+          state.otpPurpose = action.payload.otpPurpose;
+          state.user = null;
+        } else {
+          state.isAuthenticated = true;
+          state.user = action.payload.data;
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -236,7 +262,7 @@ const authSlice = createSlice({
         state.success = action.payload.success;
         state.message = action.payload.error.message;
       })
-      //   // Get Profile
+      // Get Profile
       .addCase(getProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -249,7 +275,7 @@ const authSlice = createSlice({
         state.user = action.payload.data;
         state.error = null;
         state.success = action.payload.success;
-        // state.message = action.payload.data.message;
+        state.message = action.payload.message;
       })
       .addCase(getProfile.rejected, (state, action) => {
         state.loading = false;
@@ -257,9 +283,25 @@ const authSlice = createSlice({
         state.error = action.payload.error;
         state.user = null;
         state.success = action.payload.success;
-        // state.message = action.payload.error.message;
+        state.message = action.payload.error
+          ? action.payload.error.message
+          : "Failed to fetch profile";
       })
 
+      // Handle getUserProfile (Other User)
+      .addCase(getSelectedUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getSelectedUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedUser = action.payload.data;
+      })
+      .addCase(getSelectedUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.error;
+        state.selectedUser = null;
+      })
       .addCase(updateProfileImage.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -281,7 +323,7 @@ const authSlice = createSlice({
         state.success = action.payload.success;
         state.message = action.payload.error.message;
       })
-      .addCase(updateProfile.pending, (state, action) => {
+      .addCase(updateProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
         state.success = false;
@@ -300,7 +342,7 @@ const authSlice = createSlice({
         state.success = action.payload.success;
         state.message = action.payload.error.message;
       })
-      .addCase(logout.pending, (state, action) => {
+      .addCase(logout.pending, (state) => {
         state.loading = true;
         state.error = null;
         state.success = false;
@@ -310,6 +352,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = null;
         state.user = null;
+        state.isAuthenticated = false;
         state.success = action.payload.success;
         state.message = action.payload.message;
       })

@@ -3,8 +3,12 @@ const router = express.Router();
 import {
   createPost,
   getAllPost,
-  getPostById,
+  // getPostById,
+  likePost,
   savedPost,
+  getSavedPosts,
+  getSelectedUserPosts,
+  getLikedPosts,
 } from "../controllers/post.controller.js";
 import { isAuthenticated } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.js";
@@ -18,6 +22,10 @@ router.post(
 
 router.get("/", isAuthenticated, getAllPost);
 router.post("/savedpost/:postId", isAuthenticated, savedPost);
-router.get("/single-post/:postId", isAuthenticated, getPostById);
+router.post("/likepost/:postId", isAuthenticated, likePost);
+// router.get("/single-post/:postId", isAuthenticated, getPostById);
+router.get("/getuserpost/:username", isAuthenticated, getSelectedUserPosts);
+router.get("/savedpost", isAuthenticated, getSavedPosts);
+router.get("/likedpost", isAuthenticated, getLikedPosts);
 
 export default router;
