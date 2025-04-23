@@ -509,6 +509,8 @@ export const logout = asyncHandler(async (req, res, next) => {
   const options = {
     expires: new Date(Date.now()),
     httpOnly: true,
+    secure: true,
+    sameSite: "none",
   };
   res.status(200).cookie("refreshtoken", options).json({
     success: true,
