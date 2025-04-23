@@ -473,14 +473,16 @@ export const uploadProfileImage = asyncHandler(async (req, res, next) => {
   }
   if (user.profilePictureUrl) {
     // Extract the public ID from the URL (Cloudinary URL format)
-    const imagePublicId = user.profilePictureUrl.split("/").pop().split(".")[0];
-    await deleteFileFromCloudinary(imagePublicId, "user_profiles");
+    // const imagePublicId = user.profilePictureUrl.split("/").pop().split(".")[0];
+    // await deleteFileFromCloudinary(imagePublicId, "user_profiles");
+    await deleteFileFromCloudinary(null, "user_profiles", user.username);
   }
   const localImagePath = req.file.path;
   try {
     const cloudinaryUrl = await uploadFileToCloudinary(
       localImagePath,
-      "user_profiles"
+      "user_profiles",
+      user.username
     );
     user.profilePictureUrl = cloudinaryUrl;
     await user.save({ validateBeforeSave: false });

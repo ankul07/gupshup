@@ -2,8 +2,8 @@ import multer from "multer";
 import path from "path";
 
 // Use `/tmp` directory for temporary uploads in Vercel
-// const uploadsDir = path.join(process.cwd(), "/uploads"); // `/tmp` is writable in Vercel
-const uploadsDir = "/tmp";
+const uploadsDir = path.join(process.cwd(), "/uploads"); // `/tmp` is writable in Vercel
+// const uploadsDir = "/tmp";
 
 // Define the storage engine
 const storage = multer.diskStorage({

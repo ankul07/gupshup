@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Heart,
   MessageCircle,
@@ -10,26 +10,65 @@ import { toggleSavePost, toggleLikePost } from "../redux/post/postSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 const Post = ({ post }) => {
-  // const [saved, setSaved] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  // Local state to track saved/liked status for immediate UI updates
+  const [localSaved, setLocalSaved] = useState(false);
+  const [localLiked, setLocalLiked] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0); // Used to force re-render
+
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  // console.log(user.savedPosts);
-  const isSaved = user?.savedPosts?.includes(post.id);
-  const isLiked = user?.likedPosts?.includes(post.id);
+
+  // Update local state when user state changes
+  useEffect(() => {
+    if (user?.savedPosts) {
+      setLocalSaved(user.savedPosts.includes(post.id));
+    }
+    if (user?.likedPosts) {
+      setLocalLiked(user.likedPosts.includes(post.id));
+    }
+  }, [user, post.id, forceUpdate]);
+
   const handleLike = (id) => {
-    dispatch(toggleLikePost(id));
+    // Optimistic update - update UI immediately
+    setLocalLiked(!localLiked);
+
+    // Send API request
+    dispatch(toggleLikePost(id))
+      .then(() => {
+        // Force component to re-check user state
+        setTimeout(() => setForceUpdate((prev) => prev + 1), 100);
+      })
+      .catch(() => {
+        // Revert optimistic update if there's an error
+        setLocalLiked(localLiked);
+      });
   };
 
   const handleSave = (id) => {
-    // setSaved(!saved);
-    dispatch(toggleSavePost(id));
-    console.log(id);
+    // Optimistic update - update UI immediately
+    setLocalSaved(!localSaved);
+
+    // Send API request
+    dispatch(toggleSavePost(id))
+      .then(() => {
+        // Force component to re-check user state
+        setTimeout(() => setForceUpdate((prev) => prev + 1), 100);
+        console.log(id);
+      })
+      .catch(() => {
+        // Revert optimistic update if there's an error
+        setLocalSaved(localSaved);
+      });
   };
 
   const toggleMenu = () => {
     setShowMenu(!showMenu);
   };
+
+  // Use local state for UI rendering instead of directly checking user state
+  const isSaved = localSaved;
+  const isLiked = localLiked;
 
   return (
     <div className="max-w-xl bg-white rounded-lg shadow-md mb-6">

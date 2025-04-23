@@ -6,18 +6,16 @@ import { toggleSavePost, toggleLikePost } from "../../redux/post/postSlice";
 
 const PostDetailModal = ({ post, user, onClose }) => {
   const dispatch = useDispatch();
-  console.log(post);
-  // const { user } = useSelector((state) => state.auth);
-  const isSaved = user?.savedPosts?.includes(post.id);
-  const isLiked = user?.likedPosts?.includes(post.id);
+  const { user: currentUser } = useSelector((state) => state.auth);
+  // console.log(post.id);
+  const isSaved = currentUser?.savedPosts?.includes(post.id);
+  const isLiked = currentUser?.likedPosts?.includes(post.id);
   const handleLike = (id) => {
     dispatch(toggleLikePost(id));
   };
 
   const handleSave = (id) => {
-    // setSaved(!saved);
     dispatch(toggleSavePost(id));
-    console.log(id);
   };
 
   return (
@@ -124,12 +122,14 @@ const PostDetailModal = ({ post, user, onClose }) => {
           <div className="p-4 border-t">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center space-x-4">
-                <button className="p-1 hover:bg-gray-100 rounded-full">
+                <button
+                  className="p-1 hover:bg-gray-100 rounded-full"
+                  onClick={() => handleLike(post.id)}
+                  aria-label={isLiked ? "Unlike" : "Like"}
+                >
                   <Heart
-                    className={`w-6 h-6 ${
-                      post?.engagement?.likes?.isLikedByMe == true
-                        ? "fill-red-500 text-red-500"
-                        : "text-gray-700"
+                    className={`${
+                      isLiked ? "fill-red-500 text-red-500" : "text-black"
                     }`}
                   />
                 </button>
@@ -137,12 +137,14 @@ const PostDetailModal = ({ post, user, onClose }) => {
                   <MessageCircle className="w-6 h-6 text-gray-700" />
                 </button>
               </div>
-              <button className="p-1 hover:bg-gray-100 rounded-full">
+              <button
+                className="p-1 hover:bg-gray-100 rounded-full"
+                onClick={() => handleSave(post.id)}
+                aria-label={isSaved ? "Unsave" : "Save"}
+              >
                 <Bookmark
-                  className={`w-6 h-6 ${
-                    post.savedBy?.includes(user._id)
-                      ? "fill-black text-black"
-                      : "text-gray-700"
+                  className={`${
+                    isSaved ? "fill-black text-black" : "text-black"
                   }`}
                 />
               </button>

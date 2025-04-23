@@ -21,6 +21,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import PrivateRoute from "./components/PrivateRoute";
 import Search from "./pages/Search";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminRoute from "./components/AdminRoute";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -74,6 +76,14 @@ const App = () => {
         <Route path="/otp-verify" element={<OTPVerification />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/search" element={<Search />} />
+        <Route
+          path="/dashboard"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
         <Route
           path="/create"
           element={

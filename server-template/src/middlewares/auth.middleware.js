@@ -87,3 +87,18 @@ export const refreshToken = asyncHandler(async (req, res, next) => {
     return next(new AppError("Token refresh failed", 500));
   }
 });
+
+/**
+ * @desc
+ * @route
+ * @access  Admin
+ */
+
+export const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return next(new AppError("You are not authorized", 403));
+    }
+    next();
+  };
+};

@@ -159,9 +159,13 @@ userSchema.pre("save", async function (next) {
  * @returns {String} JWT access token
  */
 userSchema.methods.getAccessToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_ACCESS_TOKEN_SECRET, {
-    expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-  });
+  return jwt.sign(
+    { id: this._id, role: this.role },
+    process.env.JWT_ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+    }
+  );
 };
 
 /**
@@ -169,9 +173,13 @@ userSchema.methods.getAccessToken = function () {
  * @returns {String} JWT refresh token
  */
 userSchema.methods.getRefreshToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_REFRESH_TOKEN_SECRET, {
-    expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
-  });
+  return jwt.sign(
+    { id: this._id, role: this.role },
+    process.env.JWT_REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
+    }
+  );
 };
 
 /**

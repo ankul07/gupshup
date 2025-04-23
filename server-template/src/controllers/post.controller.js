@@ -49,7 +49,11 @@ export const createPost = asyncHandler(async (req, res, next) => {
 
   try {
     // Upload image to Cloudinary
-    const uploadResult = await uploadFileToCloudinary(localImagePath, "posts");
+    const uploadResult = await uploadFileToCloudinary(
+      localImagePath,
+      "posts",
+      user.username
+    );
 
     // Create new post with uploaded image URL
     const newPost = await Post.create({

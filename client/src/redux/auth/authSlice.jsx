@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../services/api";
+import { toggleSavePost, toggleLikePost } from "../post/postSlice"; // Import post actions
 
 // Initial State
 const initialState = {
@@ -361,6 +362,49 @@ const authSlice = createSlice({
         state.error = action.payload.error;
         state.success = action.payload.success;
         state.message = action.payload.error.message;
+      })
+
+      // Add listener for toggleSavePost action
+      .addCase(toggleSavePost.fulfilled, (state, action) => {
+        if (state.user && state.user.savedPosts) {
+          const postId = action.meta.arg;
+          const isSaved = action.payload.isSaved;
+
+          if (isSaved) {
+            // Add post ID to savedPosts if not already there
+            if (!state.user.savedPosts.includes(postId)) {
+              state.user.savedPosts.push(postId);
+            }
+          } else {
+            // Remove post ID from savedPosts
+            state.user.savedPosts = state.user.savedPosts.filter(
+              (id) => id !== postId
+            );
+          }
+        }
+      })
+
+      // Add listener for toggleLikePost action
+      .addCase(toggleLikePost.fulfilled, (state, action) => {
+        if (state.user && state.user.likedPosts) {
+          const postId = action.meta.arg;
+          const isLiked =
+            action.payload.isLiked !== undefined
+              ? action.payload.isLiked
+              : action.payload.message.includes("liked");
+
+          if (isLiked) {
+            // Add post ID to likedPosts if not already there
+            if (!state.user.likedPosts.includes(postId)) {
+              state.user.likedPosts.push(postId);
+            }
+          } else {
+            // Remove post ID from likedPosts
+            state.user.likedPosts = state.user.likedPosts.filter(
+              (id) => id !== postId
+            );
+          }
+        }
       });
   },
 });

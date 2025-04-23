@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Heart,
   PlusSquare,
+  LayoutDashboard,
   LogOut,
 } from "lucide-react";
 import { toast } from "react-toastify";
@@ -41,14 +42,12 @@ const Sidebar = () => {
     setIsLoggingOut(true);
     dispatch(logout());
   };
-
   const navigation = [
     { icon: Home, label: "Home", path: "/" },
     { icon: Search, label: "Search", path: "/search" },
-    // { icon: Compass, label: "Explore", path: "/explore" },
-    // { icon: Film, label: "Reels", path: "/reels" },
-    // { icon: MessageCircle, label: "Messages", path: "/messages" },
-    // { icon: Heart, label: "Notifications", path: "/notifications" },
+    ...(user?.role === "admin"
+      ? [{ icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" }]
+      : []),
     { icon: PlusSquare, label: "Create", path: "/create" },
   ];
 

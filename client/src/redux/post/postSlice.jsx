@@ -46,6 +46,7 @@ export const toggleSavePost = createAsyncThunk(
   async (postId, { rejectWithValue }) => {
     try {
       const response = await api.post(`/v1/post/savedpost/${postId}`);
+      console.log("togglesavepostdata", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -69,11 +70,11 @@ export const toggleLikePost = createAsyncThunk(
 export const getSelectedUserPost = createAsyncThunk(
   "posts/getSelectedUserPost",
   async (username, { rejectWithValue }) => {
-    console.log("Inside getSelectedUserPost thunk with username:", username);
+    // console.log("Inside getSelectedUserPost thunk with username:", username);
     try {
-      console.log("Making API request for username:", username);
+      // console.log("Making API request for username:", username);
       const response = await api.get(`/v1/post/getuserpost/${username}`);
-      console.log("API response received:", response);
+      // console.log("API response received:", response);
       return response.data;
     } catch (error) {
       console.error("API request failed:", error);
