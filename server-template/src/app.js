@@ -45,8 +45,10 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
  */
 import userRoutes from "./routes/user.routes.js";
 import postRoutes from "./routes/post.routes.js";
+import adminRoutes from "./routes/admin.route.js";
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/post", postRoutes);
+app.use("/api/v1/admin", adminRoutes);
 
 /**
  * @desc Global error handling middleware

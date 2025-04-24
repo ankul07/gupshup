@@ -14,8 +14,8 @@ export const sendToken = (user, statusCode, res) => {
   const refreshTokenOptions = {
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Expires in 7 days
     httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
-    secure: true, // Set to `true` in production (ensures cookies are sent over HTTPS)
-    sameSite: "none", // Allows requests from the same site; change to 'none' for cross-site cookies in production
+    secure: false, // Set to `true` in production (ensures cookies are sent over HTTPS)
+    sameSite: "lax", // Allows requests from the same site; change to 'none' for cross-site cookies in production
   };
 
   // Send response with tokens and user data

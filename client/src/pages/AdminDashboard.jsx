@@ -1,471 +1,406 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import StatCard from "../components/admin/StatCard";
-import UserTable from "../components/admin/UserTable";
-import PostsTable from "../components/admin/PostsTable";
-import EngagementChart from "../components/admin/EngagementChart";
-import HashtagCloud from "../components/admin/HashtagCloud";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchAllUsers,
+  fetchAllPosts,
+  deletePost,
+} from "../redux/admin/adminSlice";
 import {
   Users,
-  FileText,
-  Heart,
-  MessageSquare,
-  Share2,
-  Bookmark,
-  Flag,
-  TrendingUp,
-  CheckCircle,
-  AlertTriangle,
+  ImageIcon,
+  UserX,
+  Trash2,
+  AlertCircle,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  X,
 } from "lucide-react";
 
 const AdminDashboard = () => {
-  // State for data
-  const [users, setUsers] = useState([]);
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const dispatch = useDispatch();
+  const { users, posts, loading } = useSelector((state) => state.admin);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState("users");
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
-    // Simulate data fetching - replace with actual API calls
-    const fetchData = async () => {
-      try {
-        // In a real app, replace with actual API calls
-        // const usersResponse = await fetch('/api/admin/users');
-        // const postsResponse = await fetch('/api/admin/posts');
-        // setUsers(await usersResponse.json());
-        // setPosts(await postsResponse.json());
+    dispatch(fetchAllUsers());
+    dispatch(fetchAllPosts());
+  }, [dispatch]);
 
-        // Mock data based on your schemas
-        setUsers([
-          {
-            _id: "u1",
-            username: "john_doe",
-            email: "john@example.com",
-            fullName: "John Doe",
-            isVerified: true,
-            role: "admin",
-            followers: Array(120).fill("placeholder"),
-            following: Array(45).fill("placeholder"),
-            posts: Array(15).fill("placeholder"),
-            createdAt: new Date(2023, 5, 15).toISOString(),
-          },
-          {
-            _id: "u2",
-            username: "jane_smith",
-            email: "jane@example.com",
-            fullName: "Jane Smith",
-            isVerified: true,
-            role: "user",
-            followers: Array(85).fill("placeholder"),
-            following: Array(90).fill("placeholder"),
-            posts: Array(8).fill("placeholder"),
-            createdAt: new Date(2023, 7, 22).toISOString(),
-          },
-          {
-            _id: "u3",
-            username: "alex_jones",
-            email: "alex@example.com",
-            fullName: "Alex Jones",
-            isVerified: false,
-            role: "user",
-            followers: Array(35).fill("placeholder"),
-            following: Array(42).fill("placeholder"),
-            posts: Array(5).fill("placeholder"),
-            createdAt: new Date(2023, 9, 10).toISOString(),
-          },
-          {
-            _id: "u4",
-            username: "sarah_wilson",
-            email: "sarah@example.com",
-            fullName: "Sarah Wilson",
-            isVerified: true,
-            role: "user",
-            followers: Array(210).fill("placeholder"),
-            following: Array(120).fill("placeholder"),
-            posts: Array(25).fill("placeholder"),
-            createdAt: new Date(2023, 4, 5).toISOString(),
-          },
-        ]);
+  // Calculate statistics
+  const totalUsers = users?.length || 0;
+  const totalPosts = posts?.length || 0;
+  const unverifiedUsers = users?.filter((user) => !user.isVerified).length || 0;
 
-        setPosts([
-          {
-            _id: "p1",
-            user: "u1",
-            caption: "Beautiful sunset today #nature #photography",
-            media: { imageUrl: "sunset.jpg" },
-            likes: Array(45).fill("placeholder"),
-            comments: Array(12).fill({ text: "Great shot!" }),
-            shares: Array(5).fill("placeholder"),
-            savedBy: Array(8).fill("placeholder"),
-            reportedBy: [],
-            hashtags: ["nature", "photography"],
-            createdAt: new Date(2023, 10, 1).toISOString(),
-          },
-          {
-            _id: "p2",
-            user: "u2",
-            caption: "My new project #coding #webdev",
-            media: { imageUrl: "code.jpg" },
-            likes: Array(32).fill("placeholder"),
-            comments: Array(8).fill({ text: "Looking good!" }),
-            shares: Array(3).fill("placeholder"),
-            savedBy: Array(6).fill("placeholder"),
-            reportedBy: Array(1).fill("placeholder"),
-            hashtags: ["coding", "webdev"],
-            createdAt: new Date(2023, 10, 5).toISOString(),
-          },
-          {
-            _id: "p3",
-            user: "u3",
-            caption: "Morning workout #fitness #health",
-            media: { videoUrl: "workout.mp4" },
-            likes: Array(78).fill("placeholder"),
-            comments: Array(15).fill({ text: "Keep it up!" }),
-            shares: Array(7).fill("placeholder"),
-            savedBy: Array(12).fill("placeholder"),
-            reportedBy: [],
-            hashtags: ["fitness", "health"],
-            createdAt: new Date(2023, 10, 8).toISOString(),
-          },
-          {
-            _id: "p4",
-            user: "u4",
-            caption: "New recipe #food #cooking",
-            media: { imageUrl: "recipe.jpg" },
-            likes: Array(56).fill("placeholder"),
-            comments: Array(9).fill({ text: "Looks delicious!" }),
-            shares: Array(4).fill("placeholder"),
-            savedBy: Array(15).fill("placeholder"),
-            reportedBy: [],
-            hashtags: ["food", "cooking"],
-            createdAt: new Date(2023, 10, 12).toISOString(),
-          },
-        ]);
+  // Handle post deletion
+  const handleDeletePost = (postId) => {
+    if (window.confirm("Are you sure you want to delete this post?")) {
+      dispatch(deletePost(postId));
+    }
+  };
 
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Compute stats for the dashboard
-  const totalUsers = users.length;
-  const totalPosts = posts.length;
-  const verifiedUsers = users.filter((user) => user.isVerified).length;
-  const adminUsers = users.filter((user) => user.role === "admin").length;
-
-  const totalLikes = posts.reduce((sum, post) => sum + post.likes.length, 0);
-  const totalComments = posts.reduce(
-    (sum, post) => sum + post.comments.length,
-    0
+  // Handle search
+  const filteredUsers = users?.filter(
+    (user) =>
+      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const totalShares = posts.reduce((sum, post) => sum + post.shares.length, 0);
-  const totalSaves = posts.reduce((sum, post) => sum + post.savedBy.length, 0);
-  const reportedPosts = posts.filter(
-    (post) => post.reportedBy.length > 0
-  ).length;
 
-  // Collect all hashtags for the tag cloud
-  const allHashtags = posts.reduce((tags, post) => {
-    return [...tags, ...(post.hashtags || [])];
-  }, []);
+  const filteredPosts = posts?.filter(
+    (post) =>
+      post.caption?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.user?.username?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // Count occurrences of each hashtag
-  const hashtagCounts = allHashtags.reduce((acc, tag) => {
-    acc[tag] = (acc[tag] || 0) + 1;
-    return acc;
-  }, {});
+  // Pagination
+  const activeData = activeTab === "users" ? filteredUsers : filteredPosts;
+  const totalPages = Math.ceil((activeData?.length || 0) / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = activeData?.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Format for hashtag cloud
-  const hashtagData = Object.entries(hashtagCounts).map(([tag, count]) => ({
-    text: tag,
-    value: count,
-  }));
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Stats for display
-  const overviewStats = [
-    {
-      title: "Total Users",
-      value: totalUsers,
-      icon: <Users size={24} />,
-      color: "bg-blue-500",
-    },
-    {
-      title: "Total Posts",
-      value: totalPosts,
-      icon: <FileText size={24} />,
-      color: "bg-green-500",
-    },
-    {
-      title: "Verified Users",
-      value: verifiedUsers,
-      icon: <CheckCircle size={24} />,
-      color: "bg-purple-500",
-    },
-    {
-      title: "Admin Users",
-      value: adminUsers,
-      icon: <Users size={24} />,
-      color: "bg-yellow-500",
-    },
-  ];
-
-  const engagementStats = [
-    {
-      title: "Total Likes",
-      value: totalLikes,
-      icon: <Heart size={24} />,
-      color: "bg-red-500",
-    },
-    {
-      title: "Total Comments",
-      value: totalComments,
-      icon: <MessageSquare size={24} />,
-      color: "bg-blue-500",
-    },
-    {
-      title: "Total Shares",
-      value: totalShares,
-      icon: <Share2 size={24} />,
-      color: "bg-green-500",
-    },
-    {
-      title: "Saved Posts",
-      value: totalSaves,
-      icon: <Bookmark size={24} />,
-      color: "bg-purple-500",
-    },
-  ];
-
-  const moderationStats = [
-    {
-      title: "Reported Posts",
-      value: reportedPosts,
-      icon: <Flag size={24} />,
-      color: "bg-red-500",
-    },
-  ];
-
-  // Engagement data for chart
-  const engagementData = [
-    { name: "Likes", value: totalLikes },
-    { name: "Comments", value: totalComments },
-    { name: "Shares", value: totalShares },
-    { name: "Saves", value: totalSaves },
-  ];
+  // Render statistics cards
+  const StatCard = ({ icon, title, value, bgColor }) => (
+    <div
+      className={`${bgColor} rounded-lg p-6 shadow-md flex items-center justify-between`}
+    >
+      <div>
+        <h3 className="text-lg font-medium text-gray-700">{title}</h3>
+        <p className="text-3xl font-bold text-gray-800">{value}</p>
+      </div>
+      <div className="p-4 bg-white rounded-full">{icon}</div>
+    </div>
+  );
 
   return (
     <Layout>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+      <div className="px-6 py-8 bg-gray-50 min-h-screen">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">
+          Admin Dashboard
+        </h1>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <StatCard
+            icon={<Users size={24} className="text-blue-500" />}
+            title="Total Users"
+            value={totalUsers}
+            bgColor="bg-blue-100"
+          />
+          <StatCard
+            icon={<ImageIcon size={24} className="text-green-500" />}
+            title="Total Posts"
+            value={totalPosts}
+            bgColor="bg-green-100"
+          />
+          <StatCard
+            icon={<UserX size={24} className="text-red-500" />}
+            title="Unverified Users"
+            value={unverifiedUsers}
+            bgColor="bg-red-100"
+          />
+        </div>
+
+        {/* Tab Buttons */}
+        <div className="flex mb-6 border-b">
+          <button
+            className={`py-2 px-4 font-medium ${
+              activeTab === "users"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-500"
+            }`}
+            onClick={() => {
+              setActiveTab("users");
+              setCurrentPage(1);
+            }}
+          >
+            Users
+          </button>
+          <button
+            className={`py-2 px-4 font-medium ${
+              activeTab === "posts"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-500"
+            }`}
+            onClick={() => {
+              setActiveTab("posts");
+              setCurrentPage(1);
+            }}
+          >
+            Posts
+          </button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-6 relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search size={18} className="text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder={`Search ${activeTab}...`}
+            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="text-lg">Loading dashboard data...</div>
+            <p className="text-lg text-gray-600">Loading...</p>
           </div>
         ) : (
           <>
-            {/* Tab Navigation */}
-            <div className="flex border-b border-gray-200 mb-6">
-              <button
-                className={`py-2 px-4 mr-2 ${
-                  activeTab === "overview"
-                    ? "border-b-2 border-blue-500 text-blue-600"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => setActiveTab("overview")}
-              >
-                Overview
-              </button>
-              <button
-                className={`py-2 px-4 mr-2 ${
-                  activeTab === "users"
-                    ? "border-b-2 border-blue-500 text-blue-600"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => setActiveTab("users")}
-              >
-                Users
-              </button>
-              <button
-                className={`py-2 px-4 mr-2 ${
-                  activeTab === "posts"
-                    ? "border-b-2 border-blue-500 text-blue-600"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => setActiveTab("posts")}
-              >
-                Posts
-              </button>
-              <button
-                className={`py-2 px-4 ${
-                  activeTab === "engagement"
-                    ? "border-b-2 border-blue-500 text-blue-600"
-                    : "text-gray-600 hover:text-blue-500"
-                }`}
-                onClick={() => setActiveTab("engagement")}
-              >
-                Engagement
-              </button>
-            </div>
-
-            {/* Overview Tab */}
-            {activeTab === "overview" && (
-              <>
-                {/* Stats Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                  {overviewStats.map((stat, index) => (
-                    <StatCard
-                      key={index}
-                      title={stat.title}
-                      value={stat.value}
-                      icon={stat.icon}
-                      color={stat.color}
-                    />
-                  ))}
-                </div>
-
-                {/* Recent Users and Posts */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                  <div className="bg-white p-4 rounded-lg shadow">
-                    <h2 className="text-lg font-semibold mb-4 flex items-center">
-                      <Users className="mr-2" size={20} />
-                      Recent Users
-                    </h2>
-                    <UserTable
-                      users={users.slice(0, 5)}
-                      columns={["username", "email", "role", "isVerified"]}
-                    />
-                    <div className="mt-4 text-right">
-                      <button
-                        className="text-blue-500 hover:text-blue-700"
-                        onClick={() => setActiveTab("users")}
-                      >
-                        View All Users
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-lg shadow">
-                    <h2 className="text-lg font-semibold mb-4 flex items-center">
-                      <FileText className="mr-2" size={20} />
-                      Recent Posts
-                    </h2>
-                    <PostsTable
-                      posts={posts.slice(0, 5)}
-                      columns={["caption", "likes", "comments", "reports"]}
-                    />
-                    <div className="mt-4 text-right">
-                      <button
-                        className="text-blue-500 hover:text-blue-700"
-                        onClick={() => setActiveTab("posts")}
-                      >
-                        View All Posts
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Engagement Stats */}
-                <div className="bg-white p-4 rounded-lg shadow mb-8">
-                  <h2 className="text-lg font-semibold mb-4">
-                    Engagement Overview
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {engagementStats.map((stat, index) => (
-                      <StatCard
-                        key={index}
-                        title={stat.title}
-                        value={stat.value}
-                        icon={stat.icon}
-                        color={stat.color}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Moderation Stats */}
-                <div className="bg-white p-4 rounded-lg shadow">
-                  <h2 className="text-lg font-semibold mb-4">Moderation</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                    {moderationStats.map((stat, index) => (
-                      <StatCard
-                        key={index}
-                        title={stat.title}
-                        value={stat.value}
-                        icon={stat.icon}
-                        color={stat.color}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Users Tab */}
+            {/* User Table */}
             {activeTab === "users" && (
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h2 className="text-lg font-semibold mb-4">All Users</h2>
-                <UserTable
-                  users={users}
-                  columns={[
-                    "username",
-                    "email",
-                    "fullName",
-                    "role",
-                    "followers",
-                    "following",
-                    "posts",
-                    "isVerified",
-                    "createdAt",
-                  ]}
-                  isFullTable={true}
-                />
+              <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          User
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Email
+                        </th>
+
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Role
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Verified
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Posts
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Joined
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {currentItems?.map((user) => (
+                        <tr key={user._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 overflow-hidden">
+                                {user.profilePictureUrl ? (
+                                  <img
+                                    src={user.profilePictureUrl}
+                                    alt={user.username}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  user.username.charAt(0).toUpperCase()
+                                )}
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {user.fullName}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  @{user.username}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {user.email}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                user.role === "admin"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {user.role}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {user.isVerified ? (
+                              <Check size={20} className="text-green-500" />
+                            ) : (
+                              <X size={20} className="text-red-500" />
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {user.posts?.length || 0}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
-            {/* Posts Tab */}
+            {/* Posts Table */}
             {activeTab === "posts" && (
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h2 className="text-lg font-semibold mb-4">All Posts</h2>
-                <PostsTable
-                  posts={posts}
-                  columns={[
-                    "caption",
-                    "user",
-                    "likes",
-                    "comments",
-                    "shares",
-                    "saves",
-                    "reports",
-                    "createdAt",
-                  ]}
-                  isFullTable={true}
-                />
+              <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Post
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          User
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Likes
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Comments
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Created
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {currentItems?.map((post) => (
+                        <tr key={post._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center">
+                              {post.media?.imageUrl && (
+                                <div className="h-12 w-12 mr-3 bg-gray-100 rounded overflow-hidden">
+                                  <img
+                                    src={post.media.imageUrl}
+                                    alt="Post"
+                                    className="h-full w-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <div className="text-sm text-gray-900 max-w-xs truncate">
+                                {post.caption || "(No caption)"}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {post.user?.username || "Unknown"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {post.likes?.length || 0}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {post.comments?.length || 0}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(post.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button
+                              onClick={() => handleDeletePost(post._id)}
+                              className="text-red-600 hover:text-red-900 flex items-center"
+                            >
+                              <Trash2 size={16} className="mr-1" /> Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
-            {/* Engagement Tab */}
-            {activeTab === "engagement" && (
-              <>
-                <div className="bg-white p-4 rounded-lg shadow mb-6">
-                  <h2 className="text-lg font-semibold mb-4">
-                    Engagement Metrics
-                  </h2>
-                  <EngagementChart data={engagementData} />
-                </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-6">
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
 
-                <div className="bg-white p-4 rounded-lg shadow">
-                  <h2 className="text-lg font-semibold mb-4">
-                    Popular Hashtags
-                  </h2>
-                  <HashtagCloud tags={hashtagData} />
-                </div>
-              </>
+                  {Array.from({ length: totalPages }, (_, i) => {
+                    const pageNumber = i + 1;
+                    // Show limited page numbers with ellipsis
+                    if (
+                      pageNumber === 1 ||
+                      pageNumber === totalPages ||
+                      (pageNumber >= currentPage - 1 &&
+                        pageNumber <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={pageNumber}
+                          onClick={() => paginate(pageNumber)}
+                          className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
+                            currentPage === pageNumber
+                              ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {pageNumber}
+                        </button>
+                      );
+                    } else if (
+                      pageNumber === currentPage - 2 ||
+                      pageNumber === currentPage + 2
+                    ) {
+                      return (
+                        <span
+                          key={pageNumber}
+                          className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </nav>
+              </div>
+            )}
+
+            {/* No results message */}
+            {currentItems?.length === 0 && (
+              <div className="text-center py-12 bg-white rounded-lg shadow">
+                <AlertCircle size={48} className="mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No results found
+                </h3>
+                <p className="text-gray-500">
+                  {searchTerm
+                    ? `No ${activeTab} match your search criteria.`
+                    : `No ${activeTab} available in the system.`}
+                </p>
+              </div>
             )}
           </>
         )}
