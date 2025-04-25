@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Camera } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { toggleFollowUser } from "../../redux/auth/authSlice"; // Adjust this import path as needed
 
 const ProfileHeader = ({
   user,
@@ -12,25 +14,37 @@ const ProfileHeader = ({
   isOwnProfile,
   currentUser,
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+
   const handleImageClick = () => {
     if (isOwnProfile && fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
-  const handleFollow = () => {
-    // Implement follow functionality here
-    console.log("Follow user:", user?.username);
-  };
+  const toggleFollow = async () => {
+    if (!user?._id) return;
 
-  const handleUnfollow = () => {
-    // Implement unfollow functionality here
-    console.log("Unfollow user:", user?.username);
+    setIsLoading(true);
+    try {
+      // Dispatch the action with user ID
+      await dispatch(toggleFollowUser(user._id));
+      console.log(
+        `Toggle follow for user: ${user?.username}, ID: ${user?._id}`
+      );
+    } catch (error) {
+      console.error("Error toggling follow status:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Check if current user follows this profile
   const isFollowing = currentUser?.following?.some(
-    (f) => f.username === user?.username
+    (followId) =>
+      followId === user?._id ||
+      (typeof followId === "object" && followId._id === user?._id)
   );
 
   return (
@@ -85,14 +99,19 @@ const ProfileHeader = ({
             </button>
           ) : (
             <button
-              onClick={isFollowing ? handleUnfollow : handleFollow}
+              onClick={toggleFollow}
+              disabled={isLoading}
               className={`px-4 py-1.5 rounded-md font-medium hover:opacity-90 transition-opacity ${
                 isFollowing
                   ? "bg-gray-200 text-gray-800"
                   : "bg-gradient-to-r from-purple-600 to-pink-500 text-white"
               }`}
             >
-              {isFollowing ? "Following" : "Follow"}
+              {isLoading
+                ? "Processing..."
+                : isFollowing
+                ? "Following"
+                : "Follow"}
             </button>
           )}
         </div>

@@ -149,8 +149,18 @@ export const logout = createAsyncThunk(
     }
   }
 );
-
-// Auth Slice
+// Action to toggle follow/unfollow user
+export const toggleFollowUser = createAsyncThunk(
+  "auth/toggleFollowUser",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/v1/user/follow/${userId}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+); // Auth Slice
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -405,6 +415,23 @@ const authSlice = createSlice({
             );
           }
         }
+      })
+
+      // Toggle follow user
+      .addCase(toggleFollowUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(toggleFollowUser.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update current user data with the updated user from response
+        state.user = action.payload.currentUser;
+      })
+      .addCase(toggleFollowUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload
+          ? action.payload.message
+          : "Failed to toggle follow status";
       });
   },
 });

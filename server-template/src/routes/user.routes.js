@@ -10,6 +10,7 @@ import {
   getSelectedUserProfile,
   uploadProfileImage,
   getUserByQuery,
+  toggleFollow,
 } from "../controllers/user.controller.js";
 import {
   isAuthenticated,
@@ -71,5 +72,6 @@ router.get("/logout", isAuthenticated, logout);
  * @access  Public (Token-based validation required)
  */
 router.get("/refresh-token", refreshToken);
+router.get("/follow/:id", isAuthenticated, toggleFollow);
 
 export default router;

@@ -549,3 +549,80 @@ export const getUserByQuery = asyncHandler(async (req, res, next) => {
     return next(new AppError("Error searching users", 500));
   }
 });
+
+export const toggleFollow = asyncHandler(async (req, res, next) => {
+  try {
+    const currentUserId = req.user.id; // The logged-in user
+    const targetUserId = req.params.id; // The user to follow/unfollow
+
+    // Validate IDs
+    if (!currentUserId || !targetUserId) {
+      return next(new AppError("User IDs are required", 400));
+    }
+
+    // Check if IDs are the same (can't follow yourself)
+    if (currentUserId === targetUserId) {
+      return next(new AppError("You cannot follow yourself", 400));
+    }
+
+    // Find both users
+    const currentUser = await User.findById(currentUserId);
+    const targetUser = await User.findById(targetUserId);
+
+    if (!currentUser || !targetUser) {
+      return next(new AppError("User not found", 404));
+    }
+
+    // Check if already following
+    const isFollowing = currentUser.following.includes(targetUserId);
+
+    if (isFollowing) {
+      // Unfollow: Remove targetUser from currentUser's following
+      await User.findByIdAndUpdate(currentUserId, {
+        $pull: { following: targetUserId },
+      });
+
+      // Remove currentUser from targetUser's followers
+      await User.findByIdAndUpdate(targetUserId, {
+        $pull: { followers: currentUserId },
+      });
+
+      // Get updated user data
+      const updatedTargetUser = await User.findById(targetUserId);
+      const updatedCurrentUser = await User.findById(currentUserId);
+
+      return res.status(200).json({
+        success: true,
+        message: `You have unfollowed ${targetUser.username}`,
+        isFollowing: false,
+        targetUser: updatedTargetUser,
+        currentUser: updatedCurrentUser,
+      });
+    } else {
+      // Follow: Add targetUser to currentUser's following
+      await User.findByIdAndUpdate(currentUserId, {
+        $push: { following: targetUserId },
+      });
+
+      // Add currentUser to targetUser's followers
+      await User.findByIdAndUpdate(targetUserId, {
+        $push: { followers: currentUserId },
+      });
+
+      // Get updated user data
+      const updatedTargetUser = await User.findById(targetUserId);
+      const updatedCurrentUser = await User.findById(currentUserId);
+
+      return res.status(200).json({
+        success: true,
+        message: `You are now following ${targetUser.username}`,
+        isFollowing: true,
+        targetUser: updatedTargetUser,
+        currentUser: updatedCurrentUser,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return next(new AppError("Error toggling follow status", 500));
+  }
+});
